@@ -203,6 +203,8 @@ h1 {
 .preview-banner button,
 .locked-preview button,
 .action-grid button,
+.action-grid a,
+.link-grid a,
 .sidebar-auth-actions button {
   display: inline-flex;
   min-height: 38px;
@@ -214,6 +216,7 @@ h1 {
   color: #ffffff;
   font-size: 13px;
   font-weight: 800;
+  text-decoration: none;
 }
 
 .primary-action {
@@ -300,7 +303,8 @@ h1 {
 .sidebar-auth-actions button,
 .preview-banner button,
 .locked-preview button,
-.action-grid button {
+.action-grid button,
+.action-grid a {
   border: 1px solid var(--border);
   background: var(--surface-3);
 }
@@ -374,7 +378,7 @@ h1 {
 
 .widget-strip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
   border-bottom: 1px solid var(--border);
   padding: 14px 18px;
@@ -636,6 +640,7 @@ input {
 }
 
 .locked-preview,
+.codex-preview,
 .agents-preview,
 .roadmap-preview,
 .settings-preview {
@@ -651,6 +656,11 @@ input {
 .locked-preview {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
+}
+
+.codex-preview {
+  grid-template-columns: minmax(260px, 1fr) minmax(220px, 0.7fr);
+  align-items: start;
 }
 
 .preview-icon {
@@ -674,6 +684,50 @@ input {
 .agents-preview {
   grid-template-columns: minmax(220px, 1fr) repeat(3, minmax(120px, 180px));
   align-items: stretch;
+}
+
+.link-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.link-grid a {
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.link-grid a:hover,
+.action-grid a:hover {
+  border-color: var(--border-hot);
+  background: var(--accent-soft);
+}
+
+.codex-contract {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.codex-contract div {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--surface);
+}
+
+.codex-contract span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.codex-contract strong {
+  display: block;
+  margin-top: 5px;
+  overflow-wrap: anywhere;
 }
 
 .node-preview {
@@ -943,7 +997,12 @@ input {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .codex-preview,
   .agents-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .codex-contract {
     grid-template-columns: 1fr;
   }
 }

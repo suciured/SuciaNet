@@ -29,6 +29,7 @@ function iconFor(app: LauncherApp, size = 22) {
   const props = { size, strokeWidth: 2.1 };
   if (app.icon === "home") return <Home {...props} />;
   if (app.icon === "lock") return <Lock {...props} />;
+  if (app.icon === "terminal") return <TerminalSquare {...props} />;
   if (app.icon === "bot") return <Bot {...props} />;
   if (app.icon === "layers") return <Layers3 {...props} />;
   if (app.icon === "database") return <Database {...props} />;
@@ -40,6 +41,7 @@ function iconFor(app: LauncherApp, size = 22) {
 
 function surfaceFor(appId: AppId): SurfaceMode {
   if (appId === "lock" || appId === "vault") return "lock-preview";
+  if (appId === "codex") return "codex-preview";
   if (appId === "agents") return "agents-preview";
   if (appId === "roadmap") return "roadmap-preview";
   if (appId === "settings" || appId === "audit") return "settings-preview";
@@ -48,7 +50,7 @@ function surfaceFor(appId: AppId): SurfaceMode {
 
 function toneFor(app: LauncherApp) {
   if (app.status === "public demo" || app.status === "local" || app.status === "demo") return "good";
-  if (app.status === "locked preview" || app.status === "locked" || app.status === "preview only") return "warn";
+  if (app.status === "locked preview" || app.status === "locked" || app.status === "preview only" || app.status === "manual review") return "warn";
   return "idle";
 }
 
@@ -88,7 +90,7 @@ function App() {
     <div className="app-shell launcher-shell">
       <aside className="icon-rail" aria-label="Sucia dock">
         <button className="brand-mark compact" aria-label="SuciaNet home" onClick={() => selectApp("access")}>S</button>
-        {(["access", "lock", "agents", "roadmap", "settings"] as AppId[]).map((appId) => {
+        {(["access", "lock", "codex", "agents", "roadmap", "settings"] as AppId[]).map((appId) => {
           const app = state.apps.find((item) => item.id === appId);
           if (!app) return null;
           return (
@@ -168,6 +170,11 @@ function App() {
             <strong>locked</strong>
           </div>
           <div className="home-widget warn">
+            <div className="widget-icon"><TerminalSquare size={18} /></div>
+            <span>Codex</span>
+            <strong>review</strong>
+          </div>
+          <div className="home-widget warn">
             <div className="widget-icon"><Bot size={18} /></div>
             <span>SuciAgents</span>
             <strong>preview</strong>
@@ -179,7 +186,7 @@ function App() {
           </div>
           <div className="home-widget warn">
             <div className="widget-icon"><TerminalSquare size={18} /></div>
-            <span>Actions</span>
+            <span>Browser actions</span>
             <strong>disabled</strong>
           </div>
         </section>
@@ -235,6 +242,26 @@ function App() {
             </div>
           ) : null}
 
+          {state.activeSurface === "codex-preview" ? (
+            <div className="codex-preview">
+              <div className="preview-heading">
+                <span>Manual GitHub Action</span>
+                <strong>Codex reviews SuciaNet from GitHub, not the browser</strong>
+                <p>The public site only links to the hosted workflow. The workflow is review-only, uses read-only repository permissions, and writes a report artifact.</p>
+              </div>
+              <div className="link-grid">
+                <a href="https://github.com/suciured/SuciaNet/actions/workflows/codex-agent.yml" target="_blank" rel="noreferrer"><TerminalSquare size={15} />Run Codex Agent</a>
+                <a href="https://github.com/suciured/SuciaNet/actions" target="_blank" rel="noreferrer"><ExternalLink size={15} />Actions</a>
+                <a href="https://github.com/suciured/SuciaNet" target="_blank" rel="noreferrer"><Globe size={15} />Repository</a>
+              </div>
+              <div className="codex-contract">
+                <div><span>Power</span><strong>Review only</strong></div>
+                <div><span>Secret</span><strong>GitHub Actions secret</strong></div>
+                <div><span>Output</span><strong>codex-output.md artifact</strong></div>
+              </div>
+            </div>
+          ) : null}
+
           {state.activeSurface === "agents-preview" ? (
             <div className="agents-preview">
               <div className="preview-heading">
@@ -275,7 +302,7 @@ function App() {
         </section>
 
         <nav className="launcher-dock" aria-label="Quick dock">
-          {(["access", "lock", "agents", "settings"] as AppId[]).map((appId) => {
+          {(["access", "lock", "codex", "agents", "settings"] as AppId[]).map((appId) => {
             const app = state.apps.find((item) => item.id === appId);
             if (!app) return null;
             return <button key={app.id} className={state.dockSelection === app.id ? "active" : ""} onClick={() => selectApp(app.id)}>{iconFor(app, 18)}<span>{app.name}</span></button>;
@@ -299,7 +326,11 @@ function App() {
           </div>
           <p>{selected.detail}</p>
           <div className="action-grid">
-            <button disabled><ExternalLink size={14} />Open live</button>
+            {selected.id === "codex" ? (
+              <a href="https://github.com/suciured/SuciaNet/actions/workflows/codex-agent.yml" target="_blank" rel="noreferrer"><ExternalLink size={14} />Open workflow</a>
+            ) : (
+              <button disabled><ExternalLink size={14} />Open live</button>
+            )}
             <button disabled><MessageSquare size={14} />Run action</button>
           </div>
         </section>
@@ -309,6 +340,7 @@ function App() {
           <div className="lane-list">
             <div className="lane selected"><span>No real login</span><small>Account auth is future work.</small></div>
             <div className="lane"><span>No private vault data</span><small>SuciLock remains a locked preview.</small></div>
+            <div className="lane"><span>Codex runs in GitHub</span><small>The browser only links to the manual review workflow.</small></div>
             <div className="lane"><span>No agent mutation</span><small>SuciAgents is disabled on the public site.</small></div>
             <div className="lane"><span>No DNS writes</span><small>Domain setup is manual outside the app.</small></div>
           </div>

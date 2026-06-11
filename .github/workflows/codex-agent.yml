@@ -1,0 +1,107 @@
+name: SuciaNet Codex Agent
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: Review task for the GitHub-hosted Codex agent.
+        required: true
+        type: choice
+        default: pages-readiness-review
+        options:
+          - pages-readiness-review
+          - static-site-safety-review
+          - plugin-identity-review
+          - focused-review
+      focus:
+        description: Optional focus area for Codex to inspect.
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codex-agent-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  review:
+    name: Review SuciaNet with Codex
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci 2>&1 | tee "$RUNNER_TEMP/npm-ci.log"
+
+      - name: Typecheck
+        run: npm run typecheck 2>&1 | tee "$RUNNER_TEMP/typecheck.log"
+
+      - name: Build
+        run: npm run build 2>&1 | tee "$RUNNER_TEMP/build.log"
+
+      - name: Verify OpenAI secret is configured
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "::error::Missing required repository secret OPENAI_API_KEY."
+            exit 1
+          fi
+
+      - name: Run Codex review
+        id: run_codex
+        uses: openai/codex-action@v1
+        env:
+          SUCIANET_CODEX_TASK: ${{ inputs.task }}
+          SUCIANET_CODEX_FOCUS: ${{ inputs.focus }}
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt-file: .github/codex/prompts/sucianet-review.md
+          output-file: ${{ runner.temp }}/codex-output.md
+          sandbox: read-only
+          codex-args: '["--ephemeral"]'
+
+      - name: Confirm review-only run
+        run: git diff --exit-code
+
+      - name: Write workflow summary
+        if: always()
+        run: |
+          {
+            echo "## SuciaNet Codex Agent"
+            echo
+            echo "- Task: \`${{ inputs.task }}\`"
+            echo "- Focus: \`${{ inputs.focus || 'none' }}\`"
+            echo "- Mode: review-only"
+            echo "- Repository permissions: contents read"
+            echo
+            if [ -f "$RUNNER_TEMP/codex-output.md" ]; then
+              echo "### Codex output"
+              cat "$RUNNER_TEMP/codex-output.md"
+            else
+              echo "Codex output file was not created."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload review artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sucianet-codex-agent-review
+          path: |
+            ${{ runner.temp }}/codex-output.md
+            ${{ runner.temp }}/npm-ci.log
+            ${{ runner.temp }}/typecheck.log
+            ${{ runner.temp }}/build.log
+          if-no-files-found: warn

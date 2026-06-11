@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { hasOpenAIWidgetHost, readOpenAIWidgetState, writeOpenAIWidgetState } from "./openaiWidget.js";
 
-export type AppId = "access" | "lock" | "agents" | "roadmap" | "vault" | "drive" | "audit" | "settings";
-export type AppStatus = "public demo" | "locked preview" | "preview only" | "static" | "locked" | "offline" | "demo" | "local";
-export type SurfaceMode = "launcher" | "lock-preview" | "agents-preview" | "roadmap-preview" | "settings-preview";
+export type AppId = "access" | "lock" | "codex" | "agents" | "roadmap" | "vault" | "drive" | "audit" | "settings";
+export type AppStatus = "public demo" | "locked preview" | "manual review" | "preview only" | "static" | "locked" | "offline" | "demo" | "local";
+export type SurfaceMode = "launcher" | "lock-preview" | "codex-preview" | "agents-preview" | "roadmap-preview" | "settings-preview";
 
 export type LauncherApp = {
   id: AppId;
@@ -66,6 +66,18 @@ export const defaultApps: LauncherApp[] = [
     summary: "Locked local vault preview.",
     detail: "SuciLock remains private and local. The public site only shows the locked shell and never stores or reveals vault data.",
     enabled: false,
+    featured: true,
+  },
+  {
+    id: "codex",
+    name: "Codex",
+    kind: "GitHub-hosted review agent",
+    group: "Pinned",
+    icon: "terminal",
+    status: "manual review",
+    summary: "Review-only Codex agent runs from GitHub Actions.",
+    detail: "Codex is one hosted app in this launcher. Manual GitHub Actions runs inspect SuciaNet and write a report artifact without browser secrets, commits, PRs, or main-branch mutation.",
+    enabled: true,
     featured: true,
   },
   {
@@ -176,6 +188,7 @@ function normalizeState(value: unknown): LauncherState {
       : "All";
   const activeSurface =
     value.activeSurface === "lock-preview" ||
+    value.activeSurface === "codex-preview" ||
     value.activeSurface === "agents-preview" ||
     value.activeSurface === "roadmap-preview" ||
     value.activeSurface === "settings-preview"

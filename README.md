@@ -16,6 +16,8 @@ It opens directly into a desktop-style command center with an icon rail, Sucia a
 
 SuciLock is shown as a locked preview. SuciAgents is shown as a disabled preview. Roadmap, Audit, and Settings are static explanatory surfaces.
 
+Codex is shown as one launcher app that links to a manual GitHub Actions review workflow. It does not run in the browser.
+
 ## Run Locally
 
 ```bash
@@ -43,6 +45,18 @@ The repo is configured for GitHub Pages with GitHub Actions.
 - Intended custom domain: `sucia.red`
 
 After pushing to GitHub, use repository settings to confirm Pages is using GitHub Actions. DNS remains manual and outside this app.
+
+## GitHub-Hosted Codex Agent
+
+The repo includes a review-only Codex agent workflow:
+
+- Workflow: `.github/workflows/codex-agent.yml`
+- Prompt: `.github/codex/prompts/sucianet-review.md`
+- Trigger: manual `workflow_dispatch`
+- Required secret: `OPENAI_API_KEY`
+- Output: `codex-output.md` plus install/typecheck/build logs as workflow artifacts
+
+The workflow uses read-only repository permissions and must not commit, push, open pull requests, edit Pages settings, change DNS, or mutate project files. SuciaNet only links to this workflow from the public launcher UI.
 
 ## DNS Boundary
 
